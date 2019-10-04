@@ -1,4 +1,5 @@
 var express = require('express');
+var favicon = require('serve-favicon');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
 var chokidar = require('chokidar');
@@ -7,13 +8,14 @@ var es2015 = require('babel-preset-es2015');
 var path = require('path');
 var fs = require( 'fs' );
 var history = require('connect-history-api-fallback');
+var livereload = require('livereload');
 var app = express();
 
 
 var assetsPath = path.join(__dirname, '../gui');
 var currentPath = process.cwd();
 
-
+app.use(favicon(path.join(assetsPath, 'star.png')))
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -40,7 +42,7 @@ function readP5rc() {
 
 function run(port) {
 	app.listen(port, function () {
-	  console.log('p5-manager is starting at port ' + port);
+	  console.log(`p5-manager started at http://localhost:${port}`);
 		chokidar.watch(currentPath + '/**/*.es6', {ignore: /[\/\\]\./}).on('all', function(event, p) {
 		  if (event === 'change' || event === 'add') {
 	  		babel.transformFile(p, {presets: [es2015]}, function(err, result) {
@@ -49,7 +51,9 @@ function run(port) {
 	  		});
 		  }
 		});
-	});
+  });
+	
+  livereload.createServer().watch(process.cwd());
 }
 
 function write(path, str, mode) {
